@@ -13,21 +13,41 @@ export async function main(ns) {
 	// TODO check if file exists
 	const currentHost = ns.getHostname()
 
-	// TODO recursive scan to get all servers
-	const servers = ns.scan(currentHost, true)
+	const servers = []
+	recursiveScan(ns, currentHost, servers)
 
 	// TODO monitor unhacked servers and keep retrying to hack them
 	for (const targetHost of servers) {
-		ns.print(`↓↓↓ ${targetHost} ↓↓↓`)
+		ns.print(`âââ ${targetHost} âââ`)
 		// TODO skip darkweb server
 		// TODO purchased servers should hack other servers, not itself
 		const isServerHacked = await hackServer(ns, file, currentHost, targetHost)
 		if (!isServerHacked) {
 			ns.tail()
 		}
-		ns.print(`↑↑↑ ${targetHost} ↑↑↑`)
 	}
 	ns.tail()
+}
+
+/**
+ * Do a recursive scan of the network to find all servers.
+ * 
+ * @param {NS} ns
+ * @param {string} host
+ * @param {string[]} list
+ */
+function recursiveScan(ns, host, list) {
+	// recursive scan to get all servers
+	const servers = ns.scan(host, true)
+	for (const server of servers) {
+		// if the server is already in the list or is the home server
+		// continue to the next server
+		if (list.includes(server) || server === 'home') {
+			continue
+		}
+		list.push(server)
+		recursiveScan(ns, server, list)
+	}
 }
 
 /**
