@@ -1,4 +1,4 @@
-import { booleanOption, getOptions, parseFlags } from 'utils/flags'
+import { booleanOption, getOptions, parseFlags } from './utils/flags'
 
 /**
  * @param {NS} ns
