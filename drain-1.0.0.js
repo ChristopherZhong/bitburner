@@ -26,6 +26,13 @@ const options = [
         'Example:',
         '> run %(scriptName)s --%(option)s n00dles',
     ]],
+    ['money', 0.75, [
+        'The threshold before the script runs grow.',
+        'Default: %(value)s',
+        'USAGE: run %(scriptName)s --%(option)s <threshold>',
+        'Example:',
+        '> run %(scriptName)s --%(option)s %(value)s',
+    ]],
     ['security', 5, [
         'The threshold before the script runs weaken.',
         'Default: %(value)s',
@@ -54,8 +61,10 @@ function parseFlags(ns) {
         return
     }
     const securityThreshold = ns.getServerMinSecurityLevel(host) + flags.security
+    const moneyThreshold = ns.getServerMaxMoney(host) * flags.money
     return {
         host,
+        moneyThreshold,
         securityThreshold,
     }
 }
