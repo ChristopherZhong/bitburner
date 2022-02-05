@@ -1,21 +1,15 @@
-import { booleanOption, getOptions, parseFlags } from './utils/flags'
+import { booleanOption, getOptions, parseFlags, useFlags } from './utils/flags'
 
 /**
  * @param {NS} ns
  **/
 export async function main(ns) {
-	const flags = getFlags(ns)
-	if (flags) {
-		ns.tprint(`flags: ${JSON.stringify(flags)}`)
-		if (flags.showLogs) {
-			ns.tail()
-		}
-		ns.disableLog('sleep')
+	await useFlags(ns, getFlags, async (flags) => {
 		while (true) {
 			manageGang(ns, ns.gang, flags)
 			await ns.sleep(1000)
 		}
-	}
+	})
 }
 
 /**
