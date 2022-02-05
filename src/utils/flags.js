@@ -57,14 +57,17 @@ export function parseFlags(ns, options, processFlags, printHelp) {
 
 /**
  * @param {NS} ns
+ * @param {(ns: NS) => any} getFlags
+ * @param {(flags: any) => Promise<void>} run
  */
-export function runWithFlags(ns, processFlags, f) {
-	const flags = processFlags(ns)
+export async function useFlags(ns, getFlags, run) {
+	const flags = getFlags(ns)
 	if (flags) {
 		ns.tprint(`flags: ${JSON.stringify(flags)}`)
 		if (flags.showLogs) {
 			ns.tail()
 		}
-		f()
+		ns.disableLog('sleep')
+		await run(flags)
 	}
 }
