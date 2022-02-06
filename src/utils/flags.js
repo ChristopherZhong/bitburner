@@ -71,3 +71,26 @@ export async function useFlags(ns, getFlags, run) {
 		await run(flags)
 	}
 }
+
+/**
+ * @param {NS} ns
+ * @param {string} description
+ * @param {[string, string | number | boolean, string | string[]][]} options 
+ */
+export function printHelp(ns, description, options) {
+	const scriptName = ns.getScriptName()
+	ns.tprintf('\n')
+	ns.tprintf(description)
+	const length = options.reduce((previous, [optionName]) => {
+		const length = optionName.length
+		return previous > length ? previous : length
+	}, 0) + 2
+	const filler = ' '.repeat(length + 2)
+	for (const [option, value, text] of options) {
+		ns.tprintf(`--%(option)-${length}s${text.join(`\n${filler}`)}`, { option, scriptName, value })
+	}
+	ns.tprintf('\n')
+	ns.tprintf(`USAGE: run ${scriptName}`)
+	ns.tprintf("Example:")
+	ns.tprintf(`> run ${scriptName}`)
+}
