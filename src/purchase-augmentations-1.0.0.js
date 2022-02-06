@@ -1,57 +1,56 @@
-const options = [
-    ['help', false, ['Display this help text.']],
-    ['buy', false, [
-        'Repeat buying the NeuroFlux Governor.',
-        'USAGE: run %(scriptName)s --%(option)s',
-        'Example:',
-        '> run %(scriptName)s --%(option)s',
-    ]],
-]
+import { booleanOption, getOptions, parseFlags, printHelp, useFlags } from './utils/flags'
 
 /** @param {NS} ns **/
 export async function main(ns) {
-    const flags = ns.flags(options)
-    ns.tail()
-    // ns.installAugmentations()
-    while (true) {
-        const factions = joinedFactions(ns)
-        // ns.print(`${factions}`)
-        for (const faction of factions) {
-            // ns.tprintf(`faction=${faction}`)
-            const purchasable = purchasableAugmentations(ns, faction)
-            for (const augmentation of purchasable) {
-                ns.print(`${faction}: buying ${augmentation}`)
-                const purchased = ns.purchaseAugmentation(faction, augmentation)
-                if (purchased) {
-                    ns.print(`Successfully bought ${augmentation} from ${faction}`)
-                } else {
-                    ns.print(`Failed to buy ${augmentation} from ${faction}`)
+    await useFlags(ns, getFlags, async (flags) => {
+        while (true) {
+            const factions = joinedFactions(ns)
+            // ns.print(`${factions}`)
+            for (const faction of factions) {
+                // ns.print(`faction=${faction}`)
+                const purchasable = purchasableAugmentations(ns, faction)
+                for (const augmentation of purchasable) {
+                    ns.print(`${faction}: buying ${augmentation}`)
+                    const purchased = ns.purchaseAugmentation(faction, augmentation)
+                    if (purchased) {
+                        ns.print(`Successfully bought ${augmentation} from ${faction}`)
+                    } else {
+                        ns.print(`Failed to buy ${augmentation} from ${faction}`)
+                    }
                 }
             }
-        }
-        if (flags.buy) {
-            const fac = 'Sector-12'
-            const aug = 'NeuroFlux Governor'
-            for (let i = 0; i < 100; i++) {
-                const b = ns.purchaseAugmentation(fac, aug)
-                // ns.tprintf(`purchase=${b}`)
+            if (flags.buyNeuroFluxGoverner) {
+                const augmentation = 'NeuroFlux Governor'
+                const factionsWith = factions.filter((faction) => ns.getAugmentationsFromFaction(faction).includes(augmentation))
+                const faction = factionsWith[0]
+                for (let i = 0; i < 100; i++) {
+                    const b = ns.purchaseAugmentation(faction, augmentation)
+                    // ns.tprintf(`purchase=${b}`)
+                }
+                // ns.tprintf(`stats=${JSON.stringify(ns.getAugmentationStats(aug), undefined, 2)}`)
             }
-            // ns.tprintf(`stats=${JSON.stringify(ns.getAugmentationStats(aug), undefined, 2)}`)
+            await ns.sleep(1000)
         }
-        // const augmentation = augmentations[0]
-        // ns.tprintf(`aug=${augmentation}`)
-        // const pre = ns.getAugmentationPrereq(augmentation)
-        // ns.tprintf(`pre=${pre}`)
-        // const price = ns.getAugmentationPrice(augmentation)
-        // ns.tprintf(`price=${price}`)
-        // const rep = ns.getAugmentationRepReq(augmentation)
-        // ns.tprintf(`rep=${rep}`)
-        // const stats = ns.getAugmentationStats(augmentation)
-        // ns.tprintf(`stats=${JSON.stringify(stats, undefined, 2)}`)
-        // const b = ns.purchaseAugmentation(faction, augmentation)
-        // ns.tprintf(`purchaces=${b}`)
-        await ns.sleep(1000)
+
+    })
+}
+
+/**
+ * @param {NS} ns 
+ */
+function getFlags(ns) {
+    const options = getOptions([
+        booleanOption('buy-neuroflux-governor', false, 'Repeat buying the NeuroFlux Governor.'),
+    ])
+    function processFlags(ns, flags) {
+        return {
+            buyNeuroFluxGovernor: flags['buy-neuroflux-governor'],
+        }
     }
+    function help(ns, options) {
+        printHelp(ns, 'This script will manage a bladeburner.', options)
+    }
+    return parseFlags(ns, options, processFlags, help)
 }
 
 /**
