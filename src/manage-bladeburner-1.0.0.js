@@ -1,4 +1,5 @@
 import { booleanOption, getOptions, parseFlags, useFlags } from './utils/flags'
+import { names as cityNames } from './utils/cities'
 
 /** @param {NS} ns **/
 export async function main(ns) {
@@ -76,9 +77,8 @@ function checkAndSwitchCity(ns, bladeburner) {
     }
     // if pop = 0, communities = 0 and chaos = 0, then move to next city
     if (checkCity(bladeburner.getCity())) {
-        let cities = []
         // find the next city
-        for (const city of cities) {
+        for (const city of cityNames) {
             if (checkCity(city)) {
                 continue
             } else {
