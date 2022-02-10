@@ -1,29 +1,5 @@
-import { parseFlags, standardOptions } from 'flag'
+import { booleanOption, getOptions, parseFlags, printHelp, useFlags } from './utils/flags'
 import { scan } from 'server'
-
-const options = [
-	['help', false, ['Display this help text.']],
-	['host', undefined, [
-		'The server to hack.',
-		'USAGE: run %(scriptName)s --%(option)s <server>',
-		'Example:',
-		'> run %(scriptName)s --%(option)s n00dles',
-	]],
-	['money', 0.75, [
-		'The threshold before the script runs grow.',
-		'Default: %(value)s',
-		'USAGE: run %(scriptName)s --%(option)s <threshold>',
-		'Example:',
-		'> run %(scriptName)s --%(option)s %(value)s',
-	]],
-	['security', 5, [
-		'The threshold before the script runs weaken.',
-		'Default: %(value)s',
-		'USAGE: run %(scriptName)s --%(option)s <threshold>',
-		'Example:',
-		'> run %(scriptName)s --%(option)s %(value)s',
-	]],
-]
 
 /** 
  * Deploy a script to a list of servers, gain root access to the server, and
@@ -36,30 +12,61 @@ const options = [
  * @param {NS} ns
  **/
 export async function main(ns) {
-	const flags = parseFlags(ns, standardOptions, (ns, flags) => { return { file: flags._[0], showLogs: flags['show-logs'] } }, () => { })
-	// ns.tprintf(`flags=${JSON.stringify(flags)}`)
-	if (!flags) {
-		return
-	}
-	const file = flags.file
-	// TODO check if file exists
-	const currentHost = ns.getHostname()
-
-	const servers = scan(ns)
-	// ns.tprintf(`servers=${servers}`)
-	if (flags.showLogs) {
-		ns.tail()
-	}
-	while (hasUnhackedServers(ns, servers)) {
-		// monitor unhacked servers and keep retrying to hack them
-		for (const targetHost of servers) {
-			ns.print(`${targetHost}: ${new Date()}`)
-			// TODO skip darkweb server
-			// TODO purchased servers should hack other servers, not itself
-			const isServerHacked = await hackServer(ns, file, currentHost, targetHost)
+	await useFlags(ns, getFlags, async (flags) => {
+		const file = flags.file
+		// TODO check if file exists
+		const currentHost = ns.getHostname()
+		const servers = scan(ns)
+		// ns.tprintf(`servers=${servers}`)
+		while (hasUnhackedServers(ns, servers)) {
+			// monitor unhacked servers and keep retrying to hack them
+			for (const targetHost of servers) {
+				ns.print(`${targetHost}: ${new Date()}`)
+				// TODO skip darkweb server
+				// TODO purchased servers should hack other servers, not itself
+				const isServerHacked = await hackServer(ns, file, currentHost, targetHost)
+			}
+			await ns.sleep(1000)
 		}
-		await ns.sleep(1000)
+
+	})
+}
+
+/**
+ * @param {NS} ns 
+ */
+function getFlags(ns) {
+	const options = getOptions([
+		['host', undefined, [
+			'The server to hack.',
+			'USAGE: run %(scriptName)s --%(option)s <server>',
+			'Example:',
+			'> run %(scriptName)s --%(option)s n00dles',
+		]],
+		['money', 0.75, [
+			'The threshold before the script runs grow.',
+			'Default: %(value)s',
+			'USAGE: run %(scriptName)s --%(option)s <threshold>',
+			'Example:',
+			'> run %(scriptName)s --%(option)s %(value)s',
+		]],
+		['security', 5, [
+			'The threshold before the script runs weaken.',
+			'Default: %(value)s',
+			'USAGE: run %(scriptName)s --%(option)s <threshold>',
+			'Example:',
+			'> run %(scriptName)s --%(option)s %(value)s',
+		]],
+	])
+	function processFlags(ns, flags) {
+		return {
+			file: flags._[0],
+		}
 	}
+	function help(ns, options) {
+		printHelp(ns, "This script will manage Stanek's Gift.", options)
+	}
+	return parseFlags(ns, options, processFlags, help)
 }
 
 /**
