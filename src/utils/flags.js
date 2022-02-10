@@ -20,20 +20,22 @@ export function booleanOption(optionName, defaultValue, description) {
 }
 
 /**
+ * @param {boolean} defaultShowLogs
  * @return {[string, string | number | boolean, string | string[]][]}
  */
-function getStandardOptions() {
+function getStandardOptions(defaultShowLogs) {
 	return [
 		['help', false, ['Display this help text.']],
-		booleanOption('show-logs', false, 'Show the %(scriptName)s logs.'),
+		booleanOption('show-logs', defaultShowLogs, 'Show the %(scriptName)s logs.'),
 	]
 }
 
 /**
  * @param {[string, string | number | boolean, string | string[]][]} options
+ * @param {boolean} defaultShowLogs
  */
-export function getOptions(options) {
-	return [...getStandardOptions(), ...options]
+export function getOptions(options, defaultShowLogs = false) {
+	return [...getStandardOptions(defaultShowLogs), ...options]
 }
 
 /**
